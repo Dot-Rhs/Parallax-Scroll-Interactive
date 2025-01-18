@@ -13,7 +13,16 @@
       <fieldset id="speed-type">
         <legend>Choose speed style</legend>
         <div>
-          <input type="radio" id="click-based" name="options" value="Click" />
+          <input
+            type="radio"
+            id="default-speed"
+            name="options"
+            value="default"
+          />
+          <label for="default-speed">Default</label>
+        </div>
+        <div>
+          <input type="radio" id="click-based" name="options" value="click" />
           <label for="click-based">Click</label>
         </div>
         <div>
@@ -21,13 +30,22 @@
             type="radio"
             id="position-based"
             name="options"
-            value="Position"
+            value="position"
           />
           <label for="position-based">Position</label>
         </div>
         <div>
-          <input type="radio" id="speed-based" name="options" value="Speed" />
+          <input type="radio" id="speed-based" name="options" value="speed" />
           <label for="speed-based">Speed</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            id="drag-speed-based"
+            name="options"
+            value="drag-speed"
+          />
+          <label for="drag-speed-based">Drag Speed</label>
         </div>
       </fieldset>
       <button id="john">END</button>
