@@ -75,6 +75,72 @@ const main = async () => {
 
   requestAnimationFrame(gameLoop);
 
+  let timestamp = null;
+  let lastMouseX = null;
+  let lastMouseY = null;
+
+  const dragSpeed = () => {
+    canvas.addEventListener(
+      "mousedown",
+      (e) => {
+        if (timestamp === null) {
+          timestamp = Date.now();
+          lastMouseX = e.screenX;
+          lastMouseY = e.screenY;
+          return;
+        }
+      },
+      { signal: currListener.signal },
+    );
+
+    canvas.addEventListener(
+      "mouseup",
+      function (e) {
+        var now = Date.now();
+        var dt = now - timestamp;
+        var dx = e.screenX - lastMouseX;
+        var dy = e.screenY - lastMouseY;
+        var speedX = Math.round((dx / dt) * 1000);
+        var speedY = Math.round((dy / dt) * 100);
+
+        timestamp = now;
+        lastMouseX = e.screenX;
+        lastMouseY = e.screenY;
+
+        speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
+      },
+      { signal: currListener.signal },
+    );
+  };
+
+  const mouseSpeed = () => {
+    canvas.addEventListener(
+      "mousemove",
+      (e) => {
+        if (timestamp === null) {
+          timestamp = Date.now();
+          lastMouseX = e.screenX;
+          lastMouseY = e.screenY;
+          return;
+        }
+
+        var now = Date.now();
+        var dt = now - timestamp;
+        var dx = e.screenX - lastMouseX;
+        var dy = e.screenY - lastMouseY;
+        var speedX = Math.round((dx / dt) * 1000);
+        var speedY = Math.round((dy / dt) * 100);
+
+        timestamp = now;
+        lastMouseX = e.screenX;
+        lastMouseY = e.screenY;
+
+        speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
+      },
+      { signal: currListener.signal },
+    );
+  };
+
   const clickSpeed = () => {
     canvas.addEventListener(
       "mousedown",
@@ -98,51 +164,24 @@ const main = async () => {
     );
   }
 
-  let timestamp = null;
-  let lastMouseX = null;
-  let lastMouseY = null;
+  // Option keys should match form value
+  const options = {
+    click: clickSpeed,
+    position: positionSpeed,
+    speed: mouseSpeed,
+    "drag-speed": dragSpeed,
+  };
 
-  const mouseSpeed = () =>
-    canvas.addEventListener("mousemove", function (e) {
-      if (timestamp === null) {
-        timestamp = Date.now();
-        lastMouseX = e.screenX;
-        lastMouseY = e.screenY;
-        return;
-      }
-
-      var now = Date.now();
-      var dt = now - timestamp;
-      var dx = e.screenX - lastMouseX;
-      var dy = e.screenY - lastMouseY;
-      var speedX = Math.round((dx / dt) * 100);
-      var speedY = Math.round((dy / dt) * 100);
-
-      timestamp = now;
-      lastMouseX = e.screenX;
-      lastMouseY = e.screenY;
-      console.log("SEEEED: ", speedX);
-
-      speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
-    });
-
-  const clickListener = document.getElementById("speed-type");
-  clickListener.addEventListener("change", (e) => {
+  const formListener = document.getElementById("speed-type");
+  formListener.addEventListener("change", (e) => {
     if (e.target && e.target.matches("input[type='radio']")) {
       if (currListener && currListener.signal) currListener.abort();
+
       currListener = new AbortController();
 
-      console.log(getMousePos(canvas, e));
-      if (e.target.value === "Click") clickSpeed();
-      if (e.target.value === "Position") positionSpeed();
-      if (e.target.value == "Speed") mouseSpeed();
+      return options[e.target.value]();
     }
   });
 };
-
-function end() {
-  currListener.abort();
-}
-document.getElementById("john").addEventListener("click", () => end());
 
 main();
