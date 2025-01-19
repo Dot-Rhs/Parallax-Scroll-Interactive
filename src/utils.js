@@ -62,3 +62,13 @@ export function getMousePos(canvas, evt) {
     y: evt.clientY - rect.top,
   };
 }
+
+export const calculateSpeed = (currentSpeed) => {
+  if (currentSpeed > 30) {
+    return currentSpeed * 0.999;
+  }
+
+  if (currentSpeed < 30 && currentSpeed > 0) return currentSpeed * 0.99;
+
+  if (Math.round(currentSpeed) === 0) return 0;
+};

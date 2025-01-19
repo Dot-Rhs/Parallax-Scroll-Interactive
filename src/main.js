@@ -3,10 +3,10 @@ import {
   makeSprite,
   makeLayer,
   makeInfiniteScroll,
-  getMousePos,
+  calculateSpeed,
 } from "./utils.js";
 
-let currListener;
+let abortListener;
 
 const container = document.querySelector(".container");
 
@@ -41,13 +41,16 @@ const main = async () => {
   const layer3Obj = makeLayer(ctx, layer3, { x: 0, y: -100 }, 4);
   const layer4Obj = makeLayer(ctx, layer4, { x: 0, y: -100 }, 4);
 
-  // Change speeds on mouse move?
-
   let dt;
   let oldTimeStamp = 0;
 
   const debugMode = false;
   let fps;
+
+  // Elements used for blocking some functionality if checked
+  const constantSpeedElement = document.getElementById("constant-speed");
+  const defaultRadioElement = document.getElementById("default-speed");
+
   const defaultSpeed = 150;
   let speed = defaultSpeed;
 
@@ -55,7 +58,10 @@ const main = async () => {
     dt = (timeStamp - oldTimeStamp) / 1000;
     oldTimeStamp = timeStamp;
     fps = Math.round(1 / dt);
-    console.log("DEAFULT: ", speed, defaultSpeed);
+
+    if (!defaultRadioElement.checked && !constantSpeedElement.checked) {
+      speed = calculateSpeed(speed);
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -79,8 +85,6 @@ const main = async () => {
   let lastMouseX = null;
   let lastMouseY = null;
 
-  const setDefaultSpeed = () => (speed = defaultSpeed);
-
   // Listener for calculating drag
   const dragSpeed = () => {
     canvas.addEventListener(
@@ -93,16 +97,16 @@ const main = async () => {
           return;
         }
       },
-      { signal: currListener.signal },
+      { signal: abortListener.signal },
     );
 
     canvas.addEventListener(
       "mouseup",
       (e) => {
-        var now = Date.now();
-        var dt = now - timestamp;
-        var dx = e.screenX - lastMouseX;
-        var speedX = Math.round((dx / dt) * 1000);
+        let now = Date.now();
+        let dt = now - timestamp;
+        let dx = e.screenX - lastMouseX;
+        let speedX = Math.round((dx / dt) * 1000);
 
         timestamp = now;
         lastMouseX = e.screenX;
@@ -110,7 +114,7 @@ const main = async () => {
 
         speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
       },
-      { signal: currListener.signal },
+      { signal: abortListener.signal },
     );
   };
 
@@ -125,10 +129,10 @@ const main = async () => {
           return;
         }
 
-        var now = Date.now();
-        var dt = now - timestamp;
-        var dx = e.screenX - lastMouseX;
-        var speedX = Math.round((dx / dt) * 1000);
+        let now = Date.now();
+        let dt = now - timestamp;
+        let dx = e.screenX - lastMouseX;
+        let speedX = Math.round((dx / dt) * 1000);
 
         timestamp = now;
         lastMouseX = e.screenX;
@@ -136,7 +140,7 @@ const main = async () => {
 
         speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
       },
-      { signal: currListener.signal },
+      { signal: abortListener.signal },
     );
   };
 
@@ -146,7 +150,7 @@ const main = async () => {
       (e) => {
         speed = e.offsetX;
       },
-      { signal: currListener.signal },
+      { signal: abortListener.signal },
     );
   };
 
@@ -156,15 +160,13 @@ const main = async () => {
       (e) => {
         speed = e.offsetX;
       },
-      { signal: currListener.signal },
+      { signal: abortListener.signal },
     );
   };
 
-  // ADD SLOWING - will have to add min speeds to layers etc
-
   // Option keys should match form value
   const options = {
-    default: setDefaultSpeed,
+    default: () => (speed = defaultSpeed),
     click: clickSpeed,
     position: positionSpeed,
     speed: mouseSpeed,
@@ -177,9 +179,9 @@ const main = async () => {
   // function based on the value
   formListener.addEventListener("change", (e) => {
     if (e.target && e.target.matches("input[type='radio']")) {
-      if (currListener && currListener.signal) currListener.abort();
+      if (abortListener && abortListener.signal) abortListener.abort();
 
-      currListener = new AbortController();
+      abortListener = new AbortController();
 
       return options[e.target.value]();
     }
