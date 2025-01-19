@@ -93,7 +93,6 @@ const main = async () => {
         if (timestamp === null) {
           timestamp = Date.now();
           lastMouseX = e.screenX;
-          lastMouseY = e.screenY;
           return;
         }
       },
@@ -105,14 +104,17 @@ const main = async () => {
       (e) => {
         let now = Date.now();
         let dt = now - timestamp;
-        let dx = e.screenX - lastMouseX;
+        let dx = e.screenX + lastMouseX;
         let speedX = Math.round((dx / dt) * 1000);
 
         timestamp = now;
-        lastMouseX = e.screenX;
-        lastMouseY = e.screenY;
 
-        speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
+        if (lastMouseX >= e.screenX) {
+          speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
+        } else {
+          speed = 0;
+        }
+        lastMouseX = e.screenX;
       },
       { signal: abortListener.signal },
     );
@@ -125,7 +127,6 @@ const main = async () => {
         if (timestamp === null) {
           timestamp = Date.now();
           lastMouseX = e.screenX;
-          lastMouseY = e.screenY;
           return;
         }
 
@@ -136,7 +137,6 @@ const main = async () => {
 
         timestamp = now;
         lastMouseX = e.screenX;
-        lastMouseY = e.screenY;
 
         speed = isNaN(speedX) || speedX < 0 ? 0 : speedX;
       },
